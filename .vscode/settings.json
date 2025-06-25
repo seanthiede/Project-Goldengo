@@ -1,0 +1,9 @@
+{
+  // Pfad zu deinem venv-Interpreter (anpassen, falls dein Ordner anders heißt)
+  "python.defaultInterpreterPath": "${workspaceFolder}/venv/bin/python",
+
+  // VS Code soll das Environment beim Terminalstart aktivieren
+  "python.terminal.activateEnvironment": true,
+  
+  "python.interpreter.infoVisibility": "always"
+}
