@@ -128,8 +128,12 @@ if __name__ == '__main__':
                     # Wir geben nur die wichtigsten Kennzahlen aus, um es übersichtlich zu halten
                     print(stats)
 
+                    # dynamischer Dateiname für den Plot
+                    script_base = os.path.splitext(os.path.basename(__file__))[0]
+                    data_base = os.path.splitext(filename)[0]
+
                     # Speichere den Plot als interaktive HTML-Datei, anstatt ihn anzuzeigen
-                    plot_filename = f"result_{os.path.splitext(filename)[0]}.html"
+                    plot_filename = f"{script_base}__{COIN_TO_TEST}__{data_base}.html"
                     bt.plot(filename=plot_filename, open_browser=False)
                     print(f"✅ Plot wurde als '{plot_filename}' gespeichert.")
                 else:
