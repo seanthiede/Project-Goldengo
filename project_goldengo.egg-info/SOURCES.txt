@@ -1,0 +1,10 @@
+setup.py
+project_goldengo/__init__.py
+project_goldengo/load_data.py
+project_goldengo/prepare_data.py
+project_goldengo/saved_output.py
+project_goldengo.egg-info/PKG-INFO
+project_goldengo.egg-info/SOURCES.txt
+project_goldengo.egg-info/dependency_links.txt
+project_goldengo.egg-info/requires.txt
+project_goldengo.egg-info/top_level.txt

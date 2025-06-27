@@ -1,0 +1,11 @@
+Metadata-Version: 2.4
+Name: project_goldengo
+Version: 0.1.0
+Summary: Project Goldengo Trading Tools and Strategies
+Requires-Python: >=3.7
+Requires-Dist: backtesting
+Requires-Dist: pandas
+Requires-Dist: numpy
+Dynamic: requires-dist
+Dynamic: requires-python
+Dynamic: summary

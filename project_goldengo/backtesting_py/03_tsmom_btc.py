@@ -2,9 +2,10 @@ import os
 import pandas as pd
 import backtesting
 from backtesting import Backtest, Strategy
-from prepare_data import load_and_prepare_data
+from project_goldengo.prepare_data import load_and_prepare_data
 import warnings
 import multiprocessing
+from project_goldengo.saved_output import save_result
 
 # Unterdrückt alle UserWarnings aus backtesting/backtesting.py
 warnings.filterwarnings(
@@ -80,63 +81,62 @@ class TSMOMStrategy(Strategy):
 # Schritt 2: Der "Laborroboter" - Hauptteil des Skripts
 # --------------------------------------------------------------------------
 if __name__ == '__main__':
-    # Definiere welchen coin wir testen wollen
-    COIN_TO_TEST = 'BTC'
+    COIN = 'BTC'
+    print(f"=== Backtest TSMOMStrategy für {COIN} ===")
 
-    # Baue Pfad zum richtigen Ordner
-    base_dir = os.path.dirname(os.path.abspath(__file__))
-    target_folder = os.path.join(base_dir, '..', 'crypto_data', COIN_TO_TEST)
+    # Pfad zum crypto_data-Ordner (eine Ebene oberhalb des Projekt-Pakets)
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = os.path.abspath(os.path.join(script_dir, '..'))
+    data_root = os.path.join(project_root, 'crypto_data', COIN)
 
-    print(f"=== Starte systematischen Backtest für: {COIN_TO_TEST} ===")
-    print(f"Suche nach Datensätzen in: {target_folder}\n")
+    if not os.path.isdir(data_root):
+        print(f"⚠️ Verzeichnis nicht gefunden: {data_root}")
+        exit(1)
 
-    # Überprüfe, ob der Ordner existiert
-    if not os.path.isdir(target_folder):
-        print(f"❌ FEHLER: Der Ordner '{target_folder}' wurde nicht gefunden.")
-    else:
-        # Finde alle CSV-Dateien im Zielordner
-        all_files = [file for file in os.listdir(target_folder) if file.endswith('.csv')]
+    csv_files = sorted(
+        os.path.join(data_root, fname)
+        for fname in os.listdir(data_root)
+        if fname.endswith('.csv') and fname.upper().startswith(COIN)
+    )
 
-        if not all_files:
-            print(f"⚠️ Keine .csv-Dateien im Ordner '{target_folder}' gefunden.")
-        else:
-            # Gehe jede gefundene Datei durch
-            for filename in sorted(all_files):
-                print(f"\n--- Teste jetzt: {filename} ---")
-                file_path = os.path.join(target_folder, filename)
+    if not csv_files:
+        print(f"⚠️ Keine CSV-Dateien für '{COIN}' in '{data_root}' gefunden.")
+        exit(1)
 
-                # Lade Daten und bereite sie mit unserer Fnktion vor
-                data = load_and_prepare_data(file_path)
+    for filepath in csv_files:
+        name = os.path.splitext(os.path.basename(filepath))[0]
+        print(f"\n--- Datei: {name} ---")
 
-                if data is not None and not data.empty:
-                    # Führe Backtest für diese eine Datei aus
-                    bt = Backtest(
-                        data,
-                        TSMOMStrategy,
-                        cash = 1000000,
-                        commission=.002,
-                        trade_on_close=True
-                    )
-                    stats, heatmap = bt.optimize(
-                        lookback_period=range(10, 61, 5),
-                        stop_loss_pct=[0.8, 0.85, 0.9, 0.95],
-                        maximize='Return [%]',
-                        return_heatmap=True
-                    )
+        df = load_and_prepare_data(filepath)
+        if df is None or df.empty:
+            print("-> Übersprungen: keine Daten.")
+            continue
 
-                    print("\n--- ERGEBNISSE ---")
-                    # Wir geben nur die wichtigsten Kennzahlen aus, um es übersichtlich zu halten
-                    print(stats)
+        bt = Backtest(
+            df,
+            TSMOMStrategy,
+            cash=1_000_000,
+            commission=0.002,
+            trade_on_close=True
+        )
+        stats, heatmap = bt.optimize(
+            lookback_period=range(10, 61, 5),
+            stop_loss_pct=[0.8, 0.85, 0.9, 0.95],
+            maximize='Return [%]',
+            return_heatmap=True
+        )
 
-                    # dynamischer Dateiname für den Plot
-                    script_base = os.path.splitext(os.path.basename(__file__))[0]
-                    data_base = os.path.splitext(filename)[0]
+        print("\n--- Ergebnisse ---")
+        print(stats)
 
-                    # Speichere den Plot als interaktive HTML-Datei, anstatt ihn anzuzeigen
-                    plot_filename = f"{script_base}__{COIN_TO_TEST}__{data_base}.html"
-                    bt.plot(filename=plot_filename, open_browser=False)
-                    print(f"✅ Plot wurde als '{plot_filename}' gespeichert.")
-                else:
-                    print("-> Test übersprungen wegen eines Daten-Fehlers.")
+        # Speichern
+        strategy_name = f"TSMOM_{COIN}_{name}"
+        save_result(stats.to_dict(), strategy_name + '_metrics')
+        heatmap.to_csv(os.path.join('backtest_results', f"{strategy_name}_heatmap.csv"))
+        save_result({'script': __file__}, strategy_name + '_settings')
 
-    print("\n=== Alle Tests abgeschlossen. ===")
+        # Chart speichern
+        bt.plot(filename=f"{strategy_name}.html", open_browser=False)
+        print(f"✅ Chart gespeichert als {strategy_name}.html")
+
+    print("\n=== Fertig ===")
