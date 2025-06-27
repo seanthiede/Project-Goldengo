@@ -5,7 +5,7 @@ from backtesting import Backtest, Strategy
 from backtesting.lib import crossover
 
 # Importieren Sie Ihre "kugelsichere" Funktion aus der anderen Datei
-from prepare_data import load_and_prepare_data
+from project_goldengo.prepare_data import load_and_prepare_data
 
 class DualMaAtrStrategy(Strategy):
     n1 = 20
@@ -54,7 +54,7 @@ class DualMaAtrStrategy(Strategy):
 
 
 if __name__ == '__main__':
-    from prepare_data import load_and_prepare_data
+    from project_goldengo.prepare_data import load_and_prepare_data
 
     base_dir = os.path.dirname(os.path.abspath(__file__))
     data_path = os.path.join(base_dir, '..', 'data', 'BTC-USD-20-24.csv')

@@ -6,8 +6,8 @@ import pandas as pd
 import numpy as np
 from backtesting import Backtest, Strategy
 from backtesting.lib import crossover
-from prepare_data import load_and_prepare_data
-from saved_output import save_result  # Ergebnisse abspeichern
+from project_goldengo.prepare_data import load_and_prepare_data
+from project_goldengo.saved_output import save_result  # Ergebnisse abspeichern
 
 # --- Hilfsfunktionen für Indikatoren ---
 def ema(arr, span):
